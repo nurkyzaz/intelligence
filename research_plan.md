@@ -18,7 +18,7 @@ Scope: prediction first. The interventional extension and action-based environme
 
 An agent is scored on sequences drawn from computable environments, with environments weighted by how short their description is in a fixed language.
 
-$$
+```math
 \begin{aligned}
 &\mathcal{X} && \text{finite observation alphabet (MVP: at most 4 symbols)}\\
 &\mu && \text{environment: a computable measure over sequences } x_1 x_2 \ldots \in \mathcal{X}^{\infty}\\
@@ -29,7 +29,7 @@ $$
 &n,\ m && \text{samples seen before predicting; length of the held-out prediction block}\\
 &|A|,\ T_A && \text{agent size in bits (code + parameters); compute steps used}
 \end{aligned}
-$$
+```
 
 Everything below is defined relative to the language L. Section 8 tests how much that choice matters, because Leike and Hutter (2015) showed the choice of reference machine can distort Legg–Hutter scores arbitrarily.
 
@@ -39,23 +39,23 @@ The three definitions differ in one core quantity: reward (Legg–Hutter), skill
 
 **Legg–Hutter (2007).** Intelligence is expected reward across all computable environments, weighted by simplicity.
 
-$$
+```math
 \Upsilon^{\mathrm{LH}}(\pi) = \sum_{\mu \in \mathcal{E}} 2^{-K_U(\mu)}\, V^{\pi}_{\mu}, \qquad V^{\pi}_{\mu} = \mathbb{E}^{\pi}_{\mu}\Big[\sum_{t=1}^{\infty} r_t\Big] \le 1
-$$
+```
 
 **Chollet (2019), schematic.** Intelligence is how efficiently skill is acquired, relative to the priors and experience used. The expression below simplifies his algorithmic-information formula; it is not his exact definition.
 
-$$
+```math
 I^{\mathrm{C}}(A) \approx \mathbb{E}_{T \in \mathcal{S}}\left[ \frac{\theta_T \cdot \mathrm{GD}_T}{P_T + E_T} \right]
-$$
+```
 
 For each task T in scope S: theta is the skill level reached, GD the generalization difficulty, P and E the priors and experience used, all in bits.
 
 **Proposed (this project).** Intelligence is the simplicity-weighted, learning-curve-averaged gain in predictive compression, compared among agents within a compute budget b.
 
-$$
+```math
 \Upsilon^{\mathrm{N}}_{b}(A) = \sum_{\mu \in \mathcal{E}} \xi(\mu)\, \bar{G}_A(\mu) \qquad \text{for agents with } c(A) \le b
-$$
+```
 
 | Definition | Core quantity | Generality comes from | Resources | Computable |
 | --- | --- | --- | --- | --- |
@@ -82,55 +82,55 @@ Read it left to right: a learning curve of predictions gives one gain per world,
 
 **Step 1: predictive code length.** The agent sees n samples, then predicts the next m. Its cost is the expected number of bits needed to encode that held-out block.
 
-$$
+```math
 L_A(\mu; n) = \mathbb{E}_{x \sim \mu}\left[ -\log_2 p_A\!\left(x_{n+1:n+m} \mid x_{1:n}\right) \right]
-$$
+```
 
 **Step 2: two anchors.** A uniform guesser costs the most; the true environment itself costs the least.
 
-$$
+```math
 L_{\mathrm{unif}} = m \log_2 |\mathcal{X}|, \qquad L^{*}(\mu; n) = \mathbb{E}_{x \sim \mu}\left[ -\log_2 \mu\!\left(x_{n+1:n+m} \mid x_{1:n}\right) \right]
-$$
+```
 
 **Step 3: normalized gain.** The share of the learnable structure the agent captured: 0 means no better than guessing, 1 means as good as the true environment.
 
-$$
+```math
 G_A(\mu; n) = \max\!\left(0,\; \frac{L_{\mathrm{unif}} - L_A(\mu; n)}{L_{\mathrm{unif}} - L^{*}(\mu; n)} \right) \in [0, 1]
-$$
+```
 
 Pure-noise environments (where the true cost equals the uniform cost) have no structure to find and get weight 0.
 
 **Step 4: sample efficiency.** Average the gain over a learning curve with data doubling each step, halving the weight each time. Finding structure from little data counts most.
 
-$$
+```math
 \bar{G}_A(\mu) = \sum_{j=0}^{J} w_j\, G_A\!\left(\mu; 2^{j}\right), \qquad w_j = \frac{2^{-j}}{\sum_{k=0}^{J} 2^{-k}}
-$$
+```
 
 **Step 5: resource cost.** Size and compute are measured in the same unit, bits, following Levin's time-bounded complexity.
 
-$$
+```math
 c(A) = |A| + \log_2 T_A
-$$
+```
 
 The MVP compares agents only within a budget class (c at most b) and reports the frontier of score against cost. This avoids an arbitrary trade-off constant between bits of model and bits of prediction.
 
 **Step 6: estimate by sampling.** Draw fresh environments from the prior at every evaluation, so no fixed lookup table can memorize the test set.
 
-$$
+```math
 \hat{\Upsilon}^{\mathrm{N}}(A) = \frac{1}{N} \sum_{i=1}^{N} \bar{G}_A(\mu_i), \qquad \mu_i \sim \xi
-$$
+```
 
 **Step 7 (phase 2): interventional compression.** This is where "useful" gets a precise meaning. The environment becomes a structural causal model M; the agent learns from n observational samples, then predicts outcomes under held-out interventions do(X = x) drawn from a query set Q.
 
-$$
+```math
 L^{\mathrm{do}}_A(\mathcal{M}; n) = \mathbb{E}_{\mathrm{do}(X=x) \sim \mathcal{Q}}\; \mathbb{E}_{v \sim P_{\mathcal{M}}(\cdot \mid \mathrm{do}(X=x))}\left[ -\log_2 p_A\!\left(v \mid \mathrm{do}(X=x), \mathcal{D}_n\right) \right]
-$$
+```
 
 The interventional gain is defined exactly as in Steps 3–4, then mixed with the observational gain.
 
-$$
+```math
 \bar{G}^{\alpha}_A = (1-\alpha)\, \bar{G}^{\mathrm{obs}}_A + \alpha\, \bar{G}^{\mathrm{do}}_A, \qquad \alpha \in [0, 1]
-$$
+```
 
 The weight alpha is a free choice. The MVP reports alpha = 0 and alpha = 1 separately rather than picking a mixture.
 
@@ -184,9 +184,9 @@ Five propositions pin down what the measure does; P1, P4 and P5 are elementary, 
 
 For every agent, environment and n, the gain lies in \[0, 1\], and equals 1 exactly when the agent's prediction matches the true conditional on the held-out block. The proof is one line: cross-entropy splits into entropy plus a KL divergence.
 
-$$
+```math
 L_A(\mu; n) = L^{*}(\mu; n) + \mathbb{E}_{x_{1:n}}\Big[ D_{\mathrm{KL}}\big(\mu(\cdot \mid x_{1:n}) \,\|\, p_A(\cdot \mid x_{1:n})\big) \Big] \ge L^{*}(\mu; n)
-$$
+```
 
 KL is non-negative, and zero only when the two distributions are equal (Gibbs' inequality). So the numerator of G never exceeds its denominator.
 
@@ -194,9 +194,9 @@ KL is non-negative, and zero only when the two distributions are equal (Gibbs' i
 
 Solomonoff's universal mixture M dominates every computable environment, which bounds its total excess code length by the environment's complexity.
 
-$$
+```math
 M(x_{1:n}) \ge 2^{-K_U(\mu) - O(1)}\, \mu(x_{1:n}) \quad \Longrightarrow \quad \mathbb{E}_{\mu}\big[ \log_2 \mu(x_{1:n}) - \log_2 M(x_{1:n}) \big] \le K_U(\mu) + O(1) \quad \text{for all } n
-$$
+```
 
 The bounded total forces the per-step excess to zero, so the gain of M tends to 1 in every structured environment. Two consequences:
 
@@ -213,27 +213,27 @@ The bounded total forces the per-step excess to zero, so the gain of M tends to 
 
 Take the linear-Gaussian model below with a nonzero. Agent A uses the true graph X → Y; agent B uses the reversed graph Y → X; both fit the same joint distribution exactly.
 
-$$
+```math
 X \sim \mathcal{N}(0, 1), \qquad Y = aX + \varepsilon, \qquad \varepsilon \sim \mathcal{N}(0, \sigma^2), \qquad a \neq 0
-$$
+```
 
 Same joint means identical observational loss, so the observational gains are equal. Under an intervention on X the agents disagree, because B's model says intervening on X cannot move Y.
 
-$$
+```math
 \text{truth: } Y \mid \mathrm{do}(X{=}x) \sim \mathcal{N}(ax,\ \sigma^2), \qquad \text{agent B: } Y \mid \mathrm{do}(X{=}x) \sim \mathcal{N}(0,\ a^2+\sigma^2)
-$$
+```
 
 B's excess cost, in nats, is:
 
-$$
+```math
 D_{\mathrm{KL}}\big(\mathcal{N}(ax, \sigma^2) \,\|\, \mathcal{N}(0, a^2+\sigma^2)\big) = \tfrac{1}{2}\ln\frac{a^2+\sigma^2}{\sigma^2} + \frac{\sigma^2 + a^2x^2}{2(a^2+\sigma^2)} - \tfrac{1}{2}
-$$
+```
 
 At x = 0 the excess equals the bracketed term below, which is positive; any nonzero x only adds to it.
 
-$$
+```math
 \ln(1+r) > \frac{r}{1+r} = 1 - \frac{1}{1+r} \;\Longrightarrow\; \tfrac{1}{2}\Big[\ln(1+r) + \frac{1}{1+r} - 1\Big] > 0, \qquad r = \frac{a^2}{\sigma^2} > 0
-$$
+```
 
 So the interventional gain separates A from B, while the observational gain cannot.
 
@@ -241,9 +241,9 @@ So the interventional gain separates A from B, while the observational gain cann
 
 If an agent scores at most epsilon on every environment outside a set S, its total score is capped by the prior mass of S.
 
-$$
+```math
 \Upsilon^{\mathrm{N}}(A) \le \sum_{\mu \in S} \xi(\mu) \cdot 1 + \sum_{\mu \notin S} \xi(\mu) \cdot \varepsilon \le \xi(S) + \varepsilon
-$$
+```
 
 This uses gain at most 1 (P1) and total prior mass at most 1 (Kraft's inequality, for a prefix-free DSL). The JPEG-style specialist is therefore capped by its class's share of the prior.
 
